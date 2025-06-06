@@ -1,4 +1,3 @@
-// A bigger and more challenging maze layout.
 const mazeLayout = [
     "#############",
     "#S  #       #",
@@ -11,35 +10,52 @@ const mazeLayout = [
 
 const startPosition = { x: 1, y: 1, moves: 0 };
 
-// **NEW** Helper function to generate an SVG image of the maze.
+// **UPDATED** Helper function to generate a Farcaster-compliant SVG image.
 function generateMazeImageSvg(playerPosition) {
     const cellSize = 50;
-    const width = mazeLayout[0].length * cellSize;
-    const height = (mazeLayout.length + 1) * cellSize; // Extra space for move counter
+    const finalWidth = 800;
+    const finalHeight = 418; // 1.91:1 aspect ratio
 
-    let svgContent = '';
+    // Calculate dimensions of the maze content itself
+    const mazeContentWidth = mazeLayout[0].length * cellSize;
+    const mazeContentHeight = mazeLayout.length * cellSize;
 
+    // Calculate offsets to center the maze inside the final image dimensions
+    const offsetX = (finalWidth - mazeContentWidth) / 2;
+    const offsetY = (finalHeight - mazeContentHeight - 60) / 2; // Extra space for title and moves
+
+    let mazeSvgContent = '';
     // Draw maze tiles
     mazeLayout.forEach((row, y) => {
         row.split('').forEach((cell, x) => {
             let color = '#FFFFFF'; // Path
-            if (cell === '#') color = '#1E293B'; // Wall
+            if (cell === '#') color = '#475569'; // Wall
             if (cell === 'S') color = '#10B981'; // Start
             if (cell === 'E') color = '#EF4444'; // End
-            svgContent += `<rect x="${x * cellSize}" y="${y * cellSize}" width="${cellSize}" height="${cellSize}" fill="${color}" stroke="#334155" stroke-width="1"/>`;
+            mazeSvgContent += `<rect x="${x * cellSize}" y="${y * cellSize}" width="${cellSize}" height="${cellSize}" fill="${color}" stroke="#1E293B" stroke-width="1"/>`;
         });
     });
 
     // Draw player
-    svgContent += `<circle cx="${playerPosition.x * cellSize + cellSize / 2}" cy="${playerPosition.y * cellSize + cellSize / 2}" r="${cellSize * 0.3}" fill="#F59E0B"/>`;
+    mazeSvgContent += `<circle cx="${playerPosition.x * cellSize + cellSize / 2}" cy="${playerPosition.y * cellSize + cellSize / 2}" r="${cellSize * 0.3}" fill="#F59E0B" stroke="#000000" stroke-width="2"/>`;
 
-    // Draw moves counter
-    svgContent += `<text x="${width / 2}" y="${height - cellSize / 2}" font-family="monospace" font-size="30" fill="#1E293B" text-anchor="middle" alignment-baseline="middle">Moves: ${playerPosition.moves}</text>`;
-    
-    return `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">${svgContent}</svg>`;
+    // Construct the final SVG with a background, title, centered maze, and move counter
+    return `
+    <svg width="${finalWidth}" height="${finalHeight}" xmlns="http://www.w3.org/2000/svg">
+        <style>
+            .title { font-size: 40px; font-weight: bold; fill: #1E293B; font-family: sans-serif; }
+            .moves { font-size: 30px; fill: #1E293B; font-family: sans-serif; }
+        </style>
+        <rect width="100%" height="100%" fill="#E2E8F0"/>
+        <text x="50%" y="45" text-anchor="middle" class="title">MiniMaze</text>
+        <g transform="translate(${offsetX}, ${offsetY + 30})">
+            ${mazeSvgContent}
+        </g>
+        <text x="50%" y="${finalHeight - 25}" text-anchor="middle" class="moves">Moves: ${playerPosition.moves}</text>
+    </svg>`;
 }
 
-// **NEW** Helper function for the win screen SVG.
+// Helper function for the win screen SVG.
 function generateWinImageSvg(moves) {
     return `
     <svg width="800" height="418" xmlns="http://www.w3.org/2000/svg">
