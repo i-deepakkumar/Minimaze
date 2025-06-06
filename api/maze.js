@@ -1,23 +1,19 @@
 const levels = [
     { name: "Easy", layout: ["#######", "#S   E#", "#######"] },
-    // FIXED: The Medium level is now solvable.
     { name: "Medium", layout: ["#########", "#S  #   #", "# # # # #", "#   #  E#", "#########"] },
-    { name: "Hard", layout: ["#############", "#S  #   #   #", "# # ### # ###", "# #   # #   #", "# ### # # ###", "#   #   #  E#", "#############"] }
+    { name: "Hard", layout: ["#############", "#S# #   #   #", "# # # ### ###", "#   #   #   #", "##### ### # #", "#     #   #E#", "#############"] }
 ];
 
-// UPDATED: Dynamic player colors
 const playerColors = ['#F59E0B', '#8B5CF6', '#EC4899', '#10B981', '#3B82F6'];
 
-// Function to find the start position 'S' in a layout
 const findStart = (layout) => {
     for(let y = 0; y < layout.length; y++) {
         const x = layout[y].indexOf('S');
         if (x !== -1) return { x, y };
     }
-    return { x: 1, y: 1 }; // Fallback
+    return { x: 1, y: 1 }; 
 };
 
-// Helper function to generate a Farcaster-compliant SVG image.
 function generateMazeImageSvg(level, playerPosition, playerColor) {
     const mazeLayout = levels[level].layout;
     const cellSize = 50;
@@ -41,7 +37,6 @@ function generateMazeImageSvg(level, playerPosition, playerColor) {
         });
     });
     
-    // Use the dynamic player color
     mazeSvgContent += `<circle cx="${playerPosition.x * cellSize + cellSize / 2}" cy="${playerPosition.y * cellSize + cellSize / 2}" r="${cellSize * 0.3}" fill="${playerColor}" stroke="#000000" stroke-width="2"/>`;
 
     return `
@@ -59,7 +54,6 @@ function generateMazeImageSvg(level, playerPosition, playerColor) {
     </svg>`;
 }
 
-// Helper function for intermediate level-clear and final win screens.
 function generateEndScreenSvg(title, subtitle, bgColor) {
     return `
     <svg width="800" height="418" xmlns="http://www.w3.org/2000/svg">
@@ -79,8 +73,9 @@ function isValidMove(level, x, y) {
 export default async function handler(req, res) {
     try {
         let state = { level: 0, moves: 0, colorIndex: 0 };
-        state.x = findStart(levels[0].layout).x;
-        state.y = findStart(levels[0].layout).y;
+        const startPosInitial = findStart(levels[0].layout);
+        state.x = startPosInitial.x;
+        state.y = startPosInitial.y;
         
         let buttonIndex = 0;
         if (req.method === 'POST') {
@@ -95,30 +90,27 @@ export default async function handler(req, res) {
         
         const currentLayout = levels[state.level].layout;
 
-        // Handle "Next Level" button click
         if (buttonIndex === 1 && currentLayout[state.y][state.x] === 'E') {
              state.level += 1;
              const startPos = findStart(levels[state.level].layout);
              state.x = startPos.x;
              state.y = startPos.y;
-             state.moves = 0; // Reset moves for new level
+             state.moves = 0;
         } else if (req.method === 'POST') {
-            // Standard move logic
             let newPosition = { x: state.x, y: state.y };
-            if (buttonIndex === 1) newPosition.y -= 1; // Up
-            if (buttonIndex === 2) newPosition.y += 1; // Down
-            if (buttonIndex === 3) newPosition.x -= 1; // Left
-            if (buttonIndex === 4) newPosition.x += 1; // Right
+            if (buttonIndex === 1) newPosition.y -= 1; 
+            if (buttonIndex === 2) newPosition.y += 1;
+            if (buttonIndex === 3) newPosition.x -= 1;
+            if (buttonIndex === 4) newPosition.x += 1;
     
             if (isValidMove(state.level, newPosition.x, newPosition.y)) {
                 state.x = newPosition.x;
                 state.y = newPosition.y;
                 state.moves++;
-                state.colorIndex = (state.colorIndex + 1) % playerColors.length; // Cycle color
+                state.colorIndex = (state.colorIndex + 1) % playerColors.length;
             }
         }
 
-        // Check for win/level clear condition
         if (currentLayout[state.y][state.x] === 'E') {
             const isFinalLevel = state.level >= levels.length - 1;
             const svg = isFinalLevel
@@ -137,7 +129,6 @@ export default async function handler(req, res) {
                 <meta property="fc:frame:post_url" content="https://minimaze.vercel.app/api/maze" />`;
 
             if (isFinalLevel) {
-                // Final win screen with promotion
                 html += `
                     <meta property="fc:frame:button:1" content="Play Again" />
                     <meta property="fc:frame:button:2" content="Follow @ssr20.eth" />
@@ -145,7 +136,6 @@ export default async function handler(req, res) {
                     <meta property="fc:frame:button:2:target" content="https://warpcast.com/ssr20.eth" />
                 `;
             } else {
-                // Intermediate level clear screen
                 const nextState = Buffer.from(JSON.stringify(state)).toString('base64');
                 html += `
                     <meta property="fc:frame:button:1" content="Next Level" />
@@ -156,7 +146,6 @@ export default async function handler(req, res) {
             return res.status(200).setHeader('Content-Type', 'text/html').send(html);
         }
         
-        // Default game screen rendering
         const playerColor = playerColors[state.colorIndex];
         const svg = generateMazeImageSvg(state.level, state, playerColor);
         const imageUrl = `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
