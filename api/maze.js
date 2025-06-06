@@ -1,9 +1,15 @@
-const mazeLayout = ["#######", "#S   E#", "#######"];
-// NEW: Array of colors for the player ball
-const playerColors = ['#F59E0B', '#8B5CF6', '#EC4899', '#10B981', '#3B82F6'];
+// A bigger and more challenging maze layout.
+const mazeLayout = [
+    "#############",
+    "#S  #       #",
+    "# # # ##### #",
+    "# #   #     #",
+    "# ##### ### #",
+    "#     #   #E#",
+    "#############"
+];
 
-// Player ki shuruaati position
-const startPosition = { x: 1, y: 1, moves: 0, colorIndex: 0 };
+const startPosition = { x: 1, y: 1, moves: 0 };
 
 // **NEW**: Helper function to generate an SVG image of the maze.
 function generateMazeImageSvg(playerPosition, playerColor) {
