@@ -32,6 +32,8 @@ export default async function handler(req, res) {
             const body = await req.body;
             buttonIndex = body.untrustedData.buttonIndex;
 
+            // Agar frame ka state hai, to use load karo.
+            // "Play Again" click par state nahi hoga, isliye game reset ho jayega.
             if (body.untrustedData.state) {
                  const decodedState = JSON.parse(Buffer.from(body.untrustedData.state, 'base64').toString('ascii'));
                  if (decodedState.x !== undefined && decodedState.y !== undefined) {
@@ -40,34 +42,22 @@ export default async function handler(req, res) {
             }
         }
         
-        // "Play Again" button (buttonIndex 1 on win screen) will reset the game.
-        // All other button presses are moves.
-        if (req.method === 'POST' && buttonIndex > 1) {
+        // **FIXED**: Movement logic ko saaf aur sahi kiya gaya hai.
+        // Yeh block sirf tab chalega jab koi move button (1-4) dabaya gaya ho.
+        if (req.method === 'POST' && buttonIndex >= 1 && buttonIndex <= 4) {
             let newPosition = { ...playerPosition };
-            // Remap button indexes since there is no "Next Level"
-            if (buttonIndex === 1) newPosition.y -= 1;
-            if (buttonIndex === 2) newPosition.y += 1;
-            if (buttonIndex === 3) newPosition.x -= 1;
-            if (buttonIndex === 4) newPosition.x += 1;
+            if (buttonIndex === 1) newPosition.y -= 1; // Up
+            if (buttonIndex === 2) newPosition.y += 1; // Down
+            if (buttonIndex === 3) newPosition.x -= 1; // Left
+            if (buttonIndex === 4) newPosition.x += 1; // Right
 
             if (isValidMove(newPosition.x, newPosition.y)) {
                 playerPosition = newPosition;
             }
         }
-        
-        let newPosition = { ...playerPosition };
-        if (buttonIndex === 1) newPosition.y -= 1;
-        if (buttonIndex === 2) newPosition.y += 1;
-        if (buttonIndex === 3) newPosition.x -= 1;
-        if (buttonIndex === 4) newPosition.x += 1;
 
-        if(req.method === 'POST' && isValidMove(newPosition.x, newPosition.y)){
-             playerPosition = newPosition;
-        }
-
-
-        // Check for win condition
-        if (mazeLayout[playerPosition.y][state.x] === 'E') {
+        // **FIXED**: Jeetne ki condition ko sahi variable (playerPosition) se check kiya gaya hai.
+        if (mazeLayout[playerPosition.y][playerPosition.x] === 'E') {
             const imageUrl = `https://placehold.co/800x418/28A745/FFFFFF?text=You+Won!`;
             return res.status(200).setHeader('Content-Type', 'text/html').send(`
                 <!DOCTYPE html><html><head>
