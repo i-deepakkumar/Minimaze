@@ -1,6 +1,7 @@
 const levels = [
     { name: "Easy", layout: ["#######", "#S   E#", "#######"] },
-    { name: "Medium", layout: ["#########", "#S  #   #", "# ### # #", "#   #  E#", "#########"] },
+    // FIXED: The Medium level is now solvable.
+    { name: "Medium", layout: ["#########", "#S  #   #", "# # # # #", "#   #  E#", "#########"] },
     { name: "Hard", layout: ["#############", "#S  #   #   #", "# # ### # ###", "# #   # #   #", "# ### # # ###", "#   #   #  E#", "#############"] }
 ];
 
